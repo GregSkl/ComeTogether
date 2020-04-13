@@ -12,15 +12,33 @@ result_limit = 100
 @app.route("/")
 def index():
     conn = DBConnection()
-    cursor = conn.cursor
+    cursor = conn.cursor()
     db = conn.db
-    if not session["username"]:
-        cursor.execute(f"SELECT * FROM lectures LIMIT {result_limit} ORDER BY date")
+    lectures_list = []
+    groups_list = []
+
+    if not session["username"]: #not logged in, give events by order of date
+        args = (result_limit,)
+        cursor.execute("SELECT * FROM lectures LIMIT ? ORDER BY date", args)
+        lectures_list = cursor.fetchall()
+        cursor.execute("SELECT * FROM groups LIMIT ? ORDER BY date", args)
+        groups_list = cursor.fetchall()
+
     else:
-        cursor.execute("SELECT category.id, category.name FROM (user_to_category NATURAL_JOIN categories) WHERE user.id=%s", session["id"])
-        data = cursor.fetchall()
-        
-    return render_template("index.html")
+        args = (session["id"], ) #get his fav categories
+        cursor.row_factory = lambda cursor, row: row[0]
+        cursor.execute("SELECT category.id FROM (user_to_category NATURAL_JOIN categories) WHERE user.id=?", args)
+        user_categories = cursor.fetchall()
+
+        args = tuple(user_categories) + (session[id],) #select events according to his categories
+        cursor.row_factory = None
+        cursor.execute("SELECT * FROM lectures WHERE interest IN (%s) LIMIT ? ORDER BY date" %','.join('?'*len(user_categories)), args)
+        lectures_list = cursor.fetchall()
+        cursor.execute("SELECT * FROM groups WHERE interest IN (%s) LIMIT ? ORDER BY date" %','.join('?'*len(user_categories)), args)
+        groups_list = cursor.fetchall()
+
+
+    return render_template("index.html", lectures = lectures_list, groups = groups_list)
 
 
 @app.route("/contact", methods=["GET", "POST"])
