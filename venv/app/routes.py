@@ -41,11 +41,6 @@ def index():
     return render_template("index.html", lectures = lectures_list, groups = groups_list)
 
 
-@app.route("/contact", methods=["GET"])
-def contact():
-    return render_template("contact.html")
-
-
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST" and re.match("^[a-zA-Z0-9_]{3,20}$", request.form["username"]):
@@ -126,8 +121,6 @@ def logout():
     return redirect(url_for("login"))
 
 
-
-
 def get_unique_id():
     return ''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(15))
 
@@ -135,19 +128,6 @@ def get_unique_id():
 def get_date():
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-
-
-def delete_children(id, cursor):
-    cursor.execute("SELECT id FROM posts WHERE parent_id = %s", (id,))
-    children = cursor.fetchall()
-    for child in children:
-        delete_children(child[0], cursor)
-    cursor.execute("DELETE FROM posts WHERE id = %s", (id,))
-
-
-@app.route("/gameoflife")
-def game_of_life():
-    return render_template("gameoflife.html")
 
 
 @app.errorhandler(404)
