@@ -1,13 +1,13 @@
 import sqlite3
-import configparser
+#import configparser
 
 
 class DBConnection:
 
     def __init__(self):
-        config = ConfigParser.ConfigParser()
-        config.read("dbs/config.cfg")
-        db_name = config.get("Data", "filename")
+        #config = configparser.ConfigParser()
+        #config.read("dbs/config.cfg")
+        #db_name = config["Data"]["filename"]
+        db_name = 'C:\\Users\\ittay\\Documents\\Technion repos\\Semester 4\\ComeTogether\\venv\\app\\dbs\\sqlite_db.db'
         self.db = sqlite3.connect(db_name)
-        self.db.set_character_set('utf8')
         self.cursor = self.db.cursor()

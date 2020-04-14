@@ -12,7 +12,7 @@ result_limit = 100
 @app.route("/")
 def index():
     conn = DBConnection()
-    cursor = conn.cursor()
+    cursor = conn.cursor
     db = conn.db
     lectures_list = []
     groups_list = []
