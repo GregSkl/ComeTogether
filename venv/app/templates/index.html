@@ -32,7 +32,6 @@
         <section class="navigation">
             <header>
                 <div class="header-content">
-                    <div class="logo"><a href="#"><img src="img/sedna-logo.png" alt="corona logo"></a></div>
                     <div class="header-nav">
                         <nav>
                             <ul class="primary-nav">
@@ -185,10 +184,14 @@
             </div>
             <div class="row">
                 <div class="col-md-6 col-sm-12 col-xs-12 leftcol">
-                    <h5>YOUR INTERSTS:</h5>
-                    <div>
-                        
-                    </div>
+                    <form>
+                        {% for interest in interests %}
+                        <label class="checkbox-inline">
+                          <input type="checkbox" value="{{ interest[0] }}" {% if interest[2] %} checked {% endif %}>{{ interest[1] }}
+                        </label>
+                        {% endfor %}
+                        <input type="submit" class="btn btn-info" value="Submit Button">
+                    </form>
                 </div>
                 <div class="col-md-6 col-sm-12 col-xs-12 rightcol">
                     <h5>MORE INTEREST TO CHOOSE FROM:</h5>

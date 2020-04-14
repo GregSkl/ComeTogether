@@ -9,13 +9,14 @@ from app import app
 
 result_limit = 100
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
     conn = DBConnection()
     cursor = conn.cursor
     db = conn.db
     lectures_list = []
     groups_list = []
+    merged_categories = []
 
     if not session["username"]: #not logged in, give events by order of date
         args = (result_limit,)
@@ -29,6 +30,10 @@ def index():
         cursor.row_factory = lambda cursor, row: row[0]
         cursor.execute("SELECT category.id FROM (user_to_category NATURAL_JOIN categories) WHERE user.id=?", args)
         user_categories = cursor.fetchall()
+        cursor.execute("SELECT id, name FROM categories")
+        all_categories = cursor.fetchall()
+        # display (1, 'History', True) for category info and whether the user likes it
+        merged_categories = [(category[0], category[1], category in user_categories) for category in all_categories]
 
         args = tuple(user_categories) + (session[id],) #select events according to his categories
         cursor.row_factory = None
@@ -37,8 +42,7 @@ def index():
         cursor.execute("SELECT * FROM groups WHERE subject IN (%s) LIMIT ? ORDER BY date" %','.join('?'*len(user_categories)), args)
         groups_list = cursor.fetchall()
 
-
-    return render_template("index.html", lectures = lectures_list, groups = groups_list)
+    return render_template("index.html", lectures=lectures_list, groups=groups_list, interests=merged_categories)
 
 
 @app.route("/signup", methods=["GET", "POST"])
