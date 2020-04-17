@@ -9,6 +9,7 @@ from app import app
 
 result_limit = 100
 
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     conn = DBConnection()
@@ -18,11 +19,13 @@ def index():
     groups_list = []
     merged_categories = []
 
-    if not session["username"]: #not logged in, give events by order of date
+    if not session.get("username"): #not logged in, give events by order of date_time
         args = (result_limit,)
-        cursor.execute("SELECT * FROM lectures LIMIT ? ORDER BY date", args)
+        cursor.execute("SELECT * FROM lectures ORDER BY date_time LIMIT ?", args)
+        #cursor.execute("SELECT * FROM lectures  ORDER BY date_time LIMIT 100")
         lectures_list = cursor.fetchall()
-        cursor.execute("SELECT * FROM groups LIMIT ? ORDER BY date", args)
+        cursor.execute("SELECT * FROM groups ORDER BY date_time LIMIT ?", args)
+        #cursor.execute("SELECT * FROM groups  ORDER BY date_time LIMIT 100")
         groups_list = cursor.fetchall()
 
     else:
@@ -37,9 +40,9 @@ def index():
 
         args = tuple(user_categories) + (session[id],) #select events according to his categories
         cursor.row_factory = None
-        cursor.execute("SELECT * FROM lectures WHERE subject IN (%s) LIMIT ? ORDER BY date" %','.join('?'*len(user_categories)), args)
+        cursor.execute("SELECT * FROM lectures WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(user_categories)), args)
         lectures_list = cursor.fetchall()
-        cursor.execute("SELECT * FROM groups WHERE subject IN (%s) LIMIT ? ORDER BY date" %','.join('?'*len(user_categories)), args)
+        cursor.execute("SELECT * FROM groups WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(user_categories)), args)
         groups_list = cursor.fetchall()
 
     return render_template("index.html", lectures=lectures_list, groups=groups_list, interests=merged_categories)
@@ -56,7 +59,7 @@ def signup():
         cursor.execute("SELECT * FROM users WHERE username=?", args)
 
         if not cursor.rowcount:
-            hash = bcrypt.generate_password_hash(request.form["password"])
+            hash = Bcrypt.generate_password_hash(request.form["password"])
 
             args = (request.form["username"], request.form["email"], hash, ) #add the user tuple to the DB
             cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", args)
@@ -103,7 +106,7 @@ def login():
             id = result[0]
             hash = result[1]
             permission_id = result[2]
-            if bcrypt.check_password_hash(hash, request.form["password"]): #check password
+            if Bcrypt.check_password_hash(hash, request.form["password"]): #check password
                 session["id"] = id
                 session["username"] = request.form["username"]
                 session["permission_id"] = permission_id
