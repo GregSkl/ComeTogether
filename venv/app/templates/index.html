@@ -203,6 +203,7 @@
     <section class="blog text-center">
         <div class="container-fluid">
             <div class="row">
+                {% for lecture in lectures %}
                 <div class="col-md-4">
                     <article class="blog-post">
                         <figure>
@@ -215,51 +216,19 @@
                                 </div>
                             </a>
                             <figcaption>
-                                <h2><a href="#" class="blog-category" data-toggle="tooltip" data-placement="top" data-original-title="See more posts">Lecture 1</a></h2>
-                                <p><a href="#" class="blog-post-title">Getting started with corona <i class="fa fa-angle-right"></i></a></p>
+                                <h2><a href="#" class="blog-category" data-toggle="tooltip" data-placement="top" data-original-title="See more posts">Lecture {{lecture[0]}}</a></h2>
+                                <p><a href="#" class="blog-post-title">{{ lecture[1] }}<i class="fa fa-angle-right"></i></a></p>
+                                <p>{{ lecture[2] }}</p>
+                                <p>{{ lecture[3] }}</p>
+                                <p>{{ lecture[4] }}</p>
+                                <p>{{ lecture[5] }}</p>
                                 <a href="#" class="btn btn-ghost btn-accent btn-small">Add to calender</a>
                             </figcaption>
                         </figure>
                     </article>
                 </div>
-                <div class="col-md-4">
-                    <article class="blog-post">
-                        <figure>
-                            <a href="{{ url_for('static', filename='img/blog-img-02.jpg') }}" class="single_image">
-                                <div class="blog-img-wrap">
-                                    <div class="overlay">
-                                        <i class="fa fa-search"></i>
-                                    </div>
-                                    <img src="{{ url_for('static', filename='img/blog-img-02.jpg') }}" alt="corona blog image" />
-                                </div>
-                            </a>
-                            <figcaption>
-                                <h2><a href="#" class="blog-category" data-toggle="tooltip" data-placement="top" data-original-title="See more posts">Lecture 2</a></h2>
-                                <p><a href="#" class="blog-post-title">SUBJECT <i class="fa fa-angle-right"></i></a></p>
-                                <a href="#" class="btn btn-ghost btn-accent btn-small">Add to calender</a>
-                            </figcaption>
-                        </figure>
-                    </article>
-                </div>
-                <div class="col-md-4">
-                    <article class="blog-post">
-                        <figure>
-                            <a href="{{ url_for('static', filename='img/blog-img-03.jpg') }}" class="single_image">
-                                <div class="blog-img-wrap">
-                                    <div class="overlay">
-                                        <i class="fa fa-search"></i>
-                                    </div>
-                                    <img src="{{ url_for('static', filename='img/blog-img-03.jpg') }}" class="single_image" alt="corona blog image" />
-                                </div>
-                            </a>
-                            <figcaption>
-                                <h2><a href="#" class="blog-category" data-toggle="tooltip" data-placement="top" data-original-title="See more posts">Lecture 3</a></h2>
-                                <p><a href="#" class="blog-post-title">corona tutorial: How to begin your <i class="fa fa-angle-right"></i></a></p>
-                                <a href="#" class="btn btn-ghost btn-accent btn-small">Add to calender</a>
-                            </figcaption>
-                        </figure>
-                    </article>
-                </div>
+                {% endfor %}
+                
    
             </div>
         </div>

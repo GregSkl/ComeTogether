@@ -47,6 +47,12 @@ def index():
         cursor.execute("SELECT * FROM groups WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(user_categories)), args)
         groups_list = cursor.fetchall()
 
+        """
+            lectures_list structure: (id, name, subject, date_time, description, link)
+            groups_list structure:  (id, name, subject, date_time, description, link)
+            
+        """
+
     return render_template("index.html", lectures=lectures_list, groups=groups_list, interests=merged_categories)
 
 
