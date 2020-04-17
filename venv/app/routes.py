@@ -27,6 +27,8 @@ def index():
         cursor.execute("SELECT * FROM groups ORDER BY date_time LIMIT ?", args)
         #cursor.execute("SELECT * FROM groups  ORDER BY date_time LIMIT 100")
         groups_list = cursor.fetchall()
+        cursor.execute("SELECT * FROM subjects LIMIT ?", args)
+        merged_categories = cursor.fetchall()
 
     else:
         args = (session["id"], ) #get his fav categories
