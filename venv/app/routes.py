@@ -12,56 +12,82 @@ result_limit = 100
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    conn = DBConnection()
-    cursor = conn.cursor
-    db = conn.db
-    lectures_list = []
-    groups_list = []
-    merged_categories = []
+    if request.method == "GET":
+        conn = DBConnection()
+        cursor = conn.cursor
+        db = conn.db
+        lectures_list = []
+        groups_list = []
+        all_subjects = []
+        fav_subjects = []
 
-    args = (result_limit,)
-    cursor.execute("SELECT * FROM lectures ORDER BY date_time LIMIT ?", args)
-    lectures_list = cursor.fetchall()
-    cursor.execute("SELECT * FROM groups ORDER BY date_time LIMIT ?", args)
-    groups_list = cursor.fetchall()
-    cursor.execute("SELECT * FROM subjects LIMIT ?", args)
-    merged_categories = cursor.fetchall()
 
-    """if not session.get("username"): #not logged in, give events by order of date_time
-        args = (result_limit,)
-        cursor.execute("SELECT * FROM lectures ORDER BY date_time LIMIT ?", args)
-        #cursor.execute("SELECT * FROM lectures  ORDER BY date_time LIMIT 100")
-        lectures_list = cursor.fetchall()
-        cursor.execute("SELECT * FROM groups ORDER BY date_time LIMIT ?", args)
-        #cursor.execute("SELECT * FROM groups  ORDER BY date_time LIMIT 100")
-        groups_list = cursor.fetchall()
-        cursor.execute("SELECT * FROM subjects LIMIT ?", args)
-        merged_categories = cursor.fetchall()
+        if not session.get("username"): #not logged in, give events by order of date_time
+            args = (result_limit,)
+            cursor.execute("SELECT * FROM lectures ORDER BY date_time LIMIT ?", args)
+            lectures_list = cursor.fetchall()
+            cursor.execute("SELECT * FROM groups ORDER BY date_time LIMIT ?", args)
+            groups_list = cursor.fetchall()
+            cursor.execute("SELECT * FROM subjects LIMIT ?", args)
+            all_subjects = cursor.fetchall()
+
+        else:
+            args = (session["id"], ) #get his fav categories
+            cursor.row_factory = lambda cursor, row: row[0]
+            cursor.execute("SELECT subjects.id FROM interests JOIN subjects ON interests.subject_id = subjects.id WHERE interests.user_id=?", args)
+            fav_subjects = cursor.fetchall()
+            cursor.row_factory = None
+
+            args = (result_limit,)
+            cursor.execute("SELECT * FROM subjects LIMIT ?", args)
+            all_subjects = cursor.fetchall()
+            # display (1, 'History', True) for category info and whether the user likes it
+
+            args = tuple(fav_subjects) + (session["id"],) #select events according to his categories
+            cursor.row_factory = None
+            cursor.execute("SELECT * FROM lectures WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(fav_subjects)), args)
+            lectures_list = cursor.fetchall()
+            cursor.execute("SELECT * FROM groups WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(fav_subjects)), args)
+            groups_list = cursor.fetchall()
+
+            """
+            lectures_list structure: (id, name, subject, date_time, description, link)
+            groups_list structure:  (id, name, subject, date_time, description, link)
+            
+            """
+
+        return render_template("index.html", username=session.get("username"), lectures=lectures_list, groups=groups_list, subjects=all_subjects, favs=fav_subjects)
 
     else:
-        args = (session["id"], ) #get his fav categories
-        cursor.row_factory = lambda cursor, row: row[0]
-        cursor.execute("SELECT category.id FROM (user_to_category NATURAL_JOIN categories) WHERE user.id=?", args)
-        user_categories = cursor.fetchall()
-        cursor.execute("SELECT id, name FROM categories")
-        all_categories = cursor.fetchall()
-        # display (1, 'History', True) for category info and whether the user likes it
-        merged_categories = [(category[0], category[1], category in user_categories) for category in all_categories]
-
-        args = tuple(user_categories) + (session[id],) #select events according to his categories
-        cursor.row_factory = None
-        cursor.execute("SELECT * FROM lectures WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(user_categories)), args)
-        lectures_list = cursor.fetchall()
-        cursor.execute("SELECT * FROM groups WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(user_categories)), args)
-        groups_list = cursor.fetchall()"""
-
-    """
-        lectures_list structure: (id, name, subject, date_time, description, link)
-        groups_list structure:  (id, name, subject, date_time, description, link)
+        if not session.get("id"):
+            return redirect(url_for("login"))
         
-    """
+        conn = DBConnection()
+        cursor = conn.cursor
+        db = conn.db
+        i=0
+        args = (session["id"],)
+        cursor.execute("DELETE FROM interests WHERE user_id=?",args)
+        db.commit()
 
-    return render_template("index.html", lectures=lectures_list, groups=groups_list, interests=merged_categories)
+        liked = request.form.getlist("subjectbox")
+        for entry in liked:
+            args = (session["id"], entry,)
+            cursor.execute("INSERT INTO interests VALUES (?,?)", args)
+            db.commit()
+
+
+        """while (request.form.get("box"+str(i))):
+            args = (session["id"], i, )
+            cursor.execute("INSERT INTO likUHJSedgfkujhysaeghflikuwsgedfbiluswegbf interests VALUES (?,?)", args)
+            i = i+1
+            db.commit()
+        """
+
+        db.close()        
+        return redirect(url_for("index"))
+
+    
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -85,15 +111,6 @@ def signup():
             args = (request.form["username"],) #get user's new id
             cursor.execute("SELECT id FROM users WHERE username=?", args) 
             user_id = cursor.fetchone()[0]
-
-            interests = [] #TODO: find a way to parse the interest data from the POST request
-            for entry in interests:
-                args = (entry, ) #get id of the subject
-                cursor.execute("SELECT id FROM subjects WHERE name=?",args)
-                entry_id = cursor.fetchone()[0]
-
-                args = (user_id, entry_id,) #enter the subject association
-                cursor.execute("INSERT INTO interests (user.id, subject.id) VALUES (?,?)", args)
 
             
             db.close()
