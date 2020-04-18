@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, abort
-from flask_bcrypt import Bcrypt
+import bcrypt
 from app.db import DBConnection
 import re
 import datetime
@@ -19,7 +19,15 @@ def index():
     groups_list = []
     merged_categories = []
 
-    if not session.get("username"): #not logged in, give events by order of date_time
+    args = (result_limit,)
+    cursor.execute("SELECT * FROM lectures ORDER BY date_time LIMIT ?", args)
+    lectures_list = cursor.fetchall()
+    cursor.execute("SELECT * FROM groups ORDER BY date_time LIMIT ?", args)
+    groups_list = cursor.fetchall()
+    cursor.execute("SELECT * FROM subjects LIMIT ?", args)
+    merged_categories = cursor.fetchall()
+
+    """if not session.get("username"): #not logged in, give events by order of date_time
         args = (result_limit,)
         cursor.execute("SELECT * FROM lectures ORDER BY date_time LIMIT ?", args)
         #cursor.execute("SELECT * FROM lectures  ORDER BY date_time LIMIT 100")
@@ -45,13 +53,13 @@ def index():
         cursor.execute("SELECT * FROM lectures WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(user_categories)), args)
         lectures_list = cursor.fetchall()
         cursor.execute("SELECT * FROM groups WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(user_categories)), args)
-        groups_list = cursor.fetchall()
+        groups_list = cursor.fetchall()"""
 
-        """
-            lectures_list structure: (id, name, subject, date_time, description, link)
-            groups_list structure:  (id, name, subject, date_time, description, link)
-            
-        """
+    """
+        lectures_list structure: (id, name, subject, date_time, description, link)
+        groups_list structure:  (id, name, subject, date_time, description, link)
+        
+    """
 
     return render_template("index.html", lectures=lectures_list, groups=groups_list, interests=merged_categories)
 
@@ -67,7 +75,8 @@ def signup():
         cursor.execute("SELECT * FROM users WHERE username=?", args)
 
         if not cursor.rowcount:
-            hash = Bcrypt.generate_password_hash(request.form["password"])
+            salt = bcrypt.gensalt()
+            hash = bcrypt.hashpw(request.form["password"], salt)
 
             args = (request.form["username"], request.form["email"], hash, ) #add the user tuple to the DB
             cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", args)
@@ -109,12 +118,12 @@ def login():
 
         args = (request.form["username"],) #checking if the person is registered
         cursor.execute("SELECT id, password, permission_id FROM users WHERE username=?", args)
-        if cursor.rowcount:
-            result = cursor.fetchone()
+        result = cursor.fetchone()
+        if result:
             id = result[0]
             hash = result[1]
             permission_id = result[2]
-            if Bcrypt.check_password_hash(hash, request.form["password"]): #check password
+            if bcrypt.checkpw(request.form["password"].encode('utf-8'), hash.encode('utf-8')): #check password
                 session["id"] = id
                 session["username"] = request.form["username"]
                 session["permission_id"] = permission_id
