@@ -74,9 +74,9 @@ def signup():
         args = (request.form["username"],) #check if username already exists
         cursor.execute("SELECT * FROM users WHERE username=?", args)
 
-        if not cursor.rowcount:
+        if not cursor.fetchall():
             salt = bcrypt.gensalt()
-            hash = bcrypt.hashpw(request.form["password"], salt)
+            hash = bcrypt.hashpw(request.form["password"].encode('utf-8'), salt)
 
             args = (request.form["username"], request.form["email"], hash, ) #add the user tuple to the DB
             cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", args)
@@ -99,7 +99,7 @@ def signup():
             db.close()
             session["id"] = user_id
             session["username"] = request.form["username"]
-            return redirect(url_for("about"))
+            return redirect(url_for("index"))
 
 
         else:  #show that username exists
@@ -117,16 +117,14 @@ def login():
         db = conn.db
 
         args = (request.form["username"],) #checking if the person is registered
-        cursor.execute("SELECT id, password, permission_id FROM users WHERE username=?", args)
+        cursor.execute("SELECT id, password FROM users WHERE username=?", args)
         result = cursor.fetchone()
         if result:
             id = result[0]
             hash = result[1]
-            permission_id = result[2]
             if bcrypt.checkpw(request.form["password"].encode('utf-8'), hash.encode('utf-8')): #check password
                 session["id"] = id
                 session["username"] = request.form["username"]
-                session["permission_id"] = permission_id
                 db.close()
                 return redirect(url_for("index"))
             else:
