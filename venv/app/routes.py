@@ -45,9 +45,9 @@ def index():
 
             args = tuple(fav_subjects) + (session["id"],) #select events according to his categories
             cursor.row_factory = None
-            cursor.execute("SELECT * FROM lectures JOIN subjects ON lectures.subject = subjects.id WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(fav_subjects)), args)
+            cursor.execute("SELECT * FROM lectures JOIN subjects ON lectures.subject = subjects.id WHERE lectures.subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(fav_subjects)), args)
             lectures_list = cursor.fetchall()
-            cursor.execute("SELECT * FROM groups JOIN subjects ON groups.subject = subjects.id WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(fav_subjects)), args)
+            cursor.execute("SELECT * FROM groups JOIN subjects ON groups.subject = subjects.id WHERE groups.subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(fav_subjects)), args)
             groups_list = cursor.fetchall()
 
             """
@@ -61,32 +61,40 @@ def index():
     else:
         if not session.get("id"):
             return redirect(url_for("login"))
-        
+
         conn = DBConnection()
         cursor = conn.cursor
         db = conn.db
-        i=0
-        args = (session["id"],)
-        cursor.execute("DELETE FROM interests WHERE user_id=?",args)
-        db.commit()
 
-        liked = request.form.getlist("subjectbox")
-        for entry in liked:
-            args = (session["id"], entry,)
-            cursor.execute("INSERT INTO interests VALUES (?,?)", args)
+
+        if request.form["request_type"] == "add_lecture": #making a new lecture
+            args = (request.form["title"], request.form["lecture_subject"], request.form["date"], request.form["desc"], request.form["link"],)
+            cursor.execute("INSERT INTO lectures (name, subject, date_time, description, link) VALUES (?,?,?,?,?)", args)
+            db.commit()
+            db.close()
+            return redirect(url_for("index"))
+
+        elif request.form["request_type"] == "add_group": #making a new lecture
+            args = (request.form["title"], request.form["group_subject"], request.form["date"], request.form["desc"], request.form["link"],)
+            cursor.execute("INSERT INTO groups (name, subject, date_time, description, link) VALUES (?,?,?,?,?)", args)
+            db.commit()
+            db.close()
+            return redirect(url_for("index"))
+        
+        else:
+            args = (session["id"],)
+            cursor.execute("DELETE FROM interests WHERE user_id=?",args)
             db.commit()
 
+            liked = request.form.getlist("subjectbox")
+            for entry in liked:
+                args = (session["id"], entry,)
+                cursor.execute("INSERT INTO interests VALUES (?,?)", args)
+                db.commit()
 
-        """while (request.form.get("box"+str(i))):
-            args = (session["id"], i, )
-            cursor.execute("INSERT INTO likUHJSedgfkujhysaeghflikuwsgedfbiluswegbf interests VALUES (?,?)", args)
-            i = i+1
-            db.commit()
-        """
 
-        db.close()        
-        return redirect(url_for("index"))
-
+            db.close()        
+            return redirect(url_for("index"))
     
 
 
