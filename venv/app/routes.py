@@ -24,9 +24,9 @@ def index():
 
         if not session.get("username"): #not logged in, give events by order of date_time
             args = (result_limit,)
-            cursor.execute("SELECT * FROM lectures ORDER BY date_time LIMIT ?", args)
+            cursor.execute("SELECT * FROM lectures JOIN subjects ON lectures.subject = subjects.id ORDER BY date_time LIMIT ?", args)
             lectures_list = cursor.fetchall()
-            cursor.execute("SELECT * FROM groups ORDER BY date_time LIMIT ?", args)
+            cursor.execute("SELECT * FROM groups JOIN subjects ON groups.subject = subjects.id ORDER BY date_time LIMIT ?", args)
             groups_list = cursor.fetchall()
             cursor.execute("SELECT * FROM subjects LIMIT ?", args)
             all_subjects = cursor.fetchall()
@@ -45,14 +45,14 @@ def index():
 
             args = tuple(fav_subjects) + (session["id"],) #select events according to his categories
             cursor.row_factory = None
-            cursor.execute("SELECT * FROM lectures WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(fav_subjects)), args)
+            cursor.execute("SELECT * FROM lectures JOIN subjects ON lectures.subject = subjects.id WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(fav_subjects)), args)
             lectures_list = cursor.fetchall()
-            cursor.execute("SELECT * FROM groups WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(fav_subjects)), args)
+            cursor.execute("SELECT * FROM groups JOIN subjects ON groups.subject = subjects.id WHERE subject IN (%s)  ORDER BY date_time LIMIT ?" %','.join('?'*len(fav_subjects)), args)
             groups_list = cursor.fetchall()
 
             """
-            lectures_list structure: (id, name, subject, date_time, description, link)
-            groups_list structure:  (id, name, subject, date_time, description, link)
+            lectures_list structure: (id, name, subject id, date_time, description, link, subject id, subject name)
+            groups_list structure:  (id, name, subject id, date_time, description, link, subject id, subject name)
             
             """
 

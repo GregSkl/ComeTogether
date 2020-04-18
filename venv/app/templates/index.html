@@ -186,11 +186,17 @@
             <div class="row">
                 <div class="col-md-6 col-sm-12 col-xs-12 leftcol">
                     <form method="POST" action="">
-                        {% for subject in subjects %}
-                        <label class="checkbox-inline">
-                          <input type="checkbox" name="subjectbox" value="{{subject[0]}}" id="{{subject[0]}}" {% if (subject[0] in favs) %} checked {% endif %}>{{ subject[1] }}
-                        </label>
-                        {% endfor %}
+                        <div id="checkboxes">
+                            <ul>
+                                {% for subject in subjects %}
+                                <li>
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" name="subjectbox" value="{{subject[0]}}" id="{{subject[0]}}" {% if (subject[0] in favs) %} checked {% endif %}>{{ subject[1] }}
+                                    </label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
                         <input type="submit" class="btn btn-info" value="Submit Button">
                     </form>
                 </div>
@@ -204,6 +210,7 @@
     <section class="blog text-center">
         <div class="container-fluid">
             <div class="row">
+                <h4> Lectures for you </h4>
                 {% for lecture in lectures %}
                 <div class="col-md-4">
                     <article class="blog-post">
@@ -219,7 +226,7 @@
                             <figcaption>
                                 <h2><a href="#" class="blog-category" data-toggle="tooltip" data-placement="top" data-original-title="See more posts">Lecture {{lecture[0]}}</a></h2>
                                 <p><a href="#" class="blog-post-title">{{ lecture[1] }}<i class="fa fa-angle-right"></i></a></p>
-                                <p>{{ lecture[2] }}</p>
+                                <p>{{ lecture[7] }}</p>
                                 <p>{{ lecture[3] }}</p>
                                 <p>{{ lecture[4] }}</p>
                                 <p>{{ lecture[5] }}</p>
@@ -229,8 +236,36 @@
                     </article>
                 </div>
                 {% endfor %}
-                
-   
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row">
+                <h4> </br> </br> Zoom groups for you </h4>
+                {% for group in groups %}
+                <div class="col-md-4">
+                    <article class="blog-post">
+                        <figure>
+                            <a href="{{ url_for('static', filename='img/blog-img-01.jpg') }}" class="single_image">
+                                <div class="blog-img-wrap">
+                                    <div class="overlay">
+                                        <i class="fa fa-search"></i>
+                                    </div>
+                                    <img src="{{ url_for('static', filename='img/blog-img-01.jpg') }}" alt="corona blog image" />
+                                </div>
+                            </a>
+                            <figcaption>
+                                <h2><a href="#" class="blog-category" data-toggle="tooltip" data-placement="top" data-original-title="See more posts">group {{group[0]}}</a></h2>
+                                <p><a href="#" class="blog-post-title">{{ group[1] }}<i class="fa fa-angle-right"></i></a></p>
+                                <p>{{ group[7] }}</p>
+                                <p>{{ group[3] }}</p>
+                                <p>{{ group[4] }}</p>
+                                <p>{{ group[5] }}</p>
+                                <a href="#" class="btn btn-ghost btn-accent btn-small">Add to calender</a>
+                            </figcaption>
+                        </figure>
+                    </article>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </section>
